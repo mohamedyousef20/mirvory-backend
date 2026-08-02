@@ -32,20 +32,36 @@ app.use(
 );
 
 // ─── CORS Configuration ──────────────────────────────────────────────────────
-const allowedOrigins = (process.env.FRONTEND_URL || "https://mirvory-frontend-production.vercel.app")
+const allowedOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
-  .map((o) => o.trim());
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+// دالة موحدة للتحقق من النطاقات المسموحة
+const corsOriginHandler = (origin, callback) => {
+  // السماح بالطلبات التي لا تحتوي على origin (مثل أداة curl أو تطبيقات الهاتف)
+  if (!origin) return callback(null, true);
+
+  // 1. المطابقة المباشرة مع قائمة FRONTEND_URL
+  const isExplicitlyAllowed = allowedOrigins.includes(origin);
+
+  // 2. المطابقة مع نطاق Vercel (*.vercel.app)
+  const isVercelDomain = /^https?:\/\/(.+\.)?vercel\.app$/.test(origin);
+
+  // 3. المطابقة مع نطاق mirvory.online وجميع النطاقات الفرعية (www.mirvory.online)
+  const isMirvoryDomain = /^https?:\/\/(.+\.)?mirvory\.online$/.test(origin);
+
+  if (isExplicitlyAllowed || isVercelDomain || isMirvoryDomain) {
+    return callback(null, true);
+  }
+
+  // إرجاع false يمنع النطاق دون رمي Exception يكسر هيدرز الـ Preflight
+  return callback(null, false);
+};
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // السماح بالطلبات التي لا تحتوي على origin (مثل أداة curl أو تطبيقات الهاتف) أو النطاقات المصرح لها
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      // إرجاع false يمنع النطاق دون رمي Exception يكسر هيدرز الـ Preflight
-      return callback(null, false);
-    },
+    origin: corsOriginHandler,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -103,7 +119,7 @@ const ENABLE_SOCKET = process.env.ENABLE_SOCKET === "true";
 if (ENABLE_SOCKET) {
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: corsOriginHandler,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     },
