@@ -151,20 +151,20 @@ export const register = async (req, res, next) => {
 
     await user.save();
 
-    await sendEmail({
-      email,
-      subject: 'Verify Your Email - Mirvory',
-      html: `
-        <div style="font-family: Arial; max-width: 600px; margin: 0 auto; padding: 20px; text-align: right;">
-          <h2 style="color: #1976D2;">مرحباً بك في ميرفوري!</h2>
-          <p>شكراً لتسجيلك. لتفعيل حسابك، يرجى إدخال هذا الكود:</p>
-          <div style="font-size: 24px; font-weight: bold; background: #F5F5F5; padding: 20px; text-align: center; border-radius: 8px;">
-            ${verificationCode}
-          </div>
-          <p>الكود صالح لمدة 30 دقيقة.</p>
-        </div>
-      `
-    });
+    // await sendEmail({
+    //   email,
+    //   subject: 'Verify Your Email - Mirvory',
+    //   html: `
+    //     <div style="font-family: Arial; max-width: 600px; margin: 0 auto; padding: 20px; text-align: right;">
+    //       <h2 style="color: #1976D2;">مرحباً بك في ميرفوري!</h2>
+    //       <p>شكراً لتسجيلك. لتفعيل حسابك، يرجى إدخال هذا الكود:</p>
+    //       <div style="font-size: 24px; font-weight: bold; background: #F5F5F5; padding: 20px; text-align: center; border-radius: 8px;">
+    //         ${verificationCode}
+    //       </div>
+    //       <p>الكود صالح لمدة 30 دقيقة.</p>
+    //     </div>
+    //   `
+    // });
 
     // 🔔 NOTIFICATION: Admin Alert for new registration
     (async () => {
@@ -427,20 +427,20 @@ export const resendVerification = async (req, res, next) => {
     user.verificationCodeExpiresAt = Date.now() + 5 * 60 * 1000;
     await user.save({ validateModifiedOnly: true });
 
-    await sendEmail({
-      email: user.email,
-      subject: 'تفعيل البريد الإلكتروني - Mirvory',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: right;">
-          <h2 style="color: #1976D2;">تفعيل البريد الإلكتروني</h2>
-          <p>مرحباً ${user.firstName}،</p>
-          <div style="font-size: 24px; font-weight: bold; background: #F5F5F5; padding: 20px; text-align: center; border-radius: 8px;">
-            ${verificationCode}
-          </div>
-          <p>سيتم إلغاء صلاحية هذا الكود بعد 5 دقائق.</p>
-        </div>
-      `
-    });
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: 'تفعيل البريد الإلكتروني - Mirvory',
+    //   html: `
+    //     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: right;">
+    //       <h2 style="color: #1976D2;">تفعيل البريد الإلكتروني</h2>
+    //       <p>مرحباً ${user.firstName}،</p>
+    //       <div style="font-size: 24px; font-weight: bold; background: #F5F5F5; padding: 20px; text-align: center; border-radius: 8px;">
+    //         ${verificationCode}
+    //       </div>
+    //       <p>سيتم إلغاء صلاحية هذا الكود بعد 5 دقائق.</p>
+    //     </div>
+    //   `
+    // });
 
     res.status(200).json({ success: true, message: 'تم إرسال كود التفعيل إلى بريدك الإلكتروني' });
   } catch (error) {
