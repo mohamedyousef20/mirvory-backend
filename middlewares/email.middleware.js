@@ -74,10 +74,17 @@ const sendEmail = async (options = {}) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     // 3. تسجيل معلومات الخطأ التفصيلية في الـ Logs
-    console.error('Email Sending Failed:', {
-      message: error.message,
-      code: error.code,
-      command: error.command,
+console.error({
+  name: error.name,
+  message: error.message,
+  code: error.code,
+  errno: error.errno,
+  syscall: error.syscall,
+  address: error.address,
+  port: error.port,
+  command: error.command,
+  stack: error.stack,
+});
     });
     return { success: false, error: error.message };
   }
