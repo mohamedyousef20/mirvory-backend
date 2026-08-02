@@ -188,7 +188,7 @@ export const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'تم التسجيل بنجاح. تم إرسال كود التفعيل إلى بريدك الإلكتروني',
+      message: 'تم التسجيل بنجاح.',
       userId: user._id
     });
   } catch (error) {
