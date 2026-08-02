@@ -10,7 +10,7 @@ const getTransporter = () => {
     // طباعة المتغيرات مرة واحدة فقط عند إنشاء الاتصال للأول مرة
     console.log('Initializing Email Transporter:', {
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 465,
+      port: process.env.EMAIL_PORT || 587,
       user: process.env.EMAIL_USER,
       passwordExists: !!process.env.EMAIL_PASSWORD,
     });
