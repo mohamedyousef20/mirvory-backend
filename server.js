@@ -16,7 +16,7 @@ import mountRoutes from "./routes/index.route.js";
 import User from "./models/user.model.js";
 
 // تأكد من صحة هذا المسار (cron أم corn) بحسب مجلدات المشروع لديك
-import { releaseDueBalancesCron } from "./cron/wallet.cron.js"; 
+import { releaseDueBalancesCron } from './corn/wallet.corn.js'
 
 const app = express();
 
