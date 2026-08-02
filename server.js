@@ -32,7 +32,7 @@ app.use(
 );
 
 // ─── CORS Configuration ──────────────────────────────────────────────────────
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+const allowedOrigins = (process.env.FRONTEND_URL || "https://mirvory-frontend-production.vercel.app")
   .split(",")
   .map((o) => o.trim());
 
