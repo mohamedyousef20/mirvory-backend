@@ -1,39 +1,10 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-let transporter = null;
-
-/**
- * إنشاء وإعادة استخدام Transporter موحد مع إعدادات الحماية والمهل الزمنية
- */
-const getTransporter = () => {
-  if (!transporter) {
-    // طباعة المتغيرات مرة واحدة فقط عند إنشاء الاتصال للأول مرة
-    console.log('Initializing Email Transporter:', {
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      user: process.env.EMAIL_USER,
-      passwordExists: !!process.env.EMAIL_PASSWORD,
-    });
-
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT, 10) || 465,
-      secure: (process.env.EMAIL_PORT || '465') === '465',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      // مهل زمنية لمنع تعلق العمليات عند وجود مشكلة في الشبكة
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000,
-    });
-  }
-  return transporter;
-};
+// تهيئة عميل Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * دالة إرسال البريد الإلكتروني
+ * دالة إرسال البريد الإلكتروني عبر Resend API
  */
 const sendEmail = async (options = {}) => {
   // 1. التحقق المبكر من صحة المدخلات (Input Validation)
@@ -53,31 +24,28 @@ const sendEmail = async (options = {}) => {
   }
 
   try {
-    const mailer = getTransporter();
-
-    // 2. بناء كائن البريد
-    const mailOptions = {
-      from: `Mirvory <${process.env.EMAIL_USER || 'noreply@mirvory.com'}>`,
-      to: options.email,
+    // 2. بناء كائن البريد والإرسال عبر API
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Mirvory <onboarding@resend.dev>',
+      to: [options.email],
       subject: options.subject,
       text: options.message || undefined,
       html: options.html || undefined,
-      attachments: options.attachments || [],
-    };
+      attachments: options.attachments || undefined,
+    });
 
-    const info = await mailer.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    // 3. التعامل مع أخطاء الاستجابة القادمة من Resend
+    if (error) {
+      console.error('Email Error Details (Resend API):', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, messageId: data.id };
   } catch (error) {
-    // 3. تسجيل معلومات الخطأ التفصيلية في الـ Logs
+    // 4. تسجيل معلومات الخطأ التفصيلية في حالة حدوث Exception غير متوقع
     console.error('Email Error Details:', {
       name: error.name,
       message: error.message,
-      code: error.code,
-      errno: error.errno,
-      syscall: error.syscall,
-      address: error.address,
-      port: error.port,
-      command: error.command,
       stack: error.stack,
     });
 
