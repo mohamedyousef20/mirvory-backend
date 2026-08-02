@@ -71,6 +71,7 @@ app.use(
       "Accept", 
       "X-XSRF-TOKEN"
     ],
+    optionsSuccessStatus: 200,
   })
 );
 
