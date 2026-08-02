@@ -7,6 +7,14 @@ let transporter = null;
  */
 const getTransporter = () => {
   if (!transporter) {
+    // طباعة المتغيرات مرة واحدة فقط عند إنشاء الاتصال للأول مرة
+    console.log('Initializing Email Transporter:', {
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: process.env.EMAIL_PORT || 465,
+      user: process.env.EMAIL_USER,
+      passwordExists: !!process.env.EMAIL_PASSWORD,
+    });
+
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT, 10) || 465,
@@ -21,24 +29,11 @@ const getTransporter = () => {
       socketTimeout: 5000,
     });
   }
-  console.log({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  user: process.env.EMAIL_USER,
-  passwordExists: !!process.env.EMAIL_PASSWORD,
-});
   return transporter;
 };
 
 /**
  * دالة إرسال البريد الإلكتروني
- * @param {Object} options - خيارات البريد
- * @param {string} options.email - البريد الإلكتروني للمستلم
- * @param {string} options.subject - عنوان الرسالة
- * @param {string} [options.message] - نص الرسالة العادي
- * @param {string} [options.html] - محتوى الرسالة بترميز HTML
- * @param {Array} [options.attachments] - مرفقات مع الرسالة (اختياري)
- * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
  */
 const sendEmail = async (options = {}) => {
   // 1. التحقق المبكر من صحة المدخلات (Input Validation)
@@ -60,7 +55,7 @@ const sendEmail = async (options = {}) => {
   try {
     const mailer = getTransporter();
 
-    // 2. بناء كائن البريد مع دعم النص والـ HTML والمرفقات
+    // 2. بناء كائن البريد
     const mailOptions = {
       from: `Mirvory <${process.env.EMAIL_USER || 'noreply@mirvory.com'}>`,
       to: options.email,
@@ -74,18 +69,18 @@ const sendEmail = async (options = {}) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     // 3. تسجيل معلومات الخطأ التفصيلية في الـ Logs
-console.error({
-  name: error.name,
-  message: error.message,
-  code: error.code,
-  errno: error.errno,
-  syscall: error.syscall,
-  address: error.address,
-  port: error.port,
-  command: error.command,
-  stack: error.stack,
-});
+    console.error('Email Error Details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall,
+      address: error.address,
+      port: error.port,
+      command: error.command,
+      stack: error.stack,
     });
+
     return { success: false, error: error.message };
   }
 };
