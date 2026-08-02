@@ -1,4 +1,3 @@
-// server.js
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 
@@ -15,7 +14,9 @@ import rateLimit from "express-rate-limit";
 import connectDB from "./config/db.js";
 import mountRoutes from "./routes/index.route.js";
 import User from "./models/user.model.js";
-import { releaseDueBalancesCron } from "./corn/wallet.corn.js";
+
+// تأكد من صحة هذا المسار (cron أم corn) بحسب مجلدات المشروع لديك
+import { releaseDueBalancesCron } from "./cron/wallet.cron.js"; 
 
 const app = express();
 
@@ -26,11 +27,11 @@ app.set("trust proxy", 1);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false, // handled by Next.js on the frontend
+    contentSecurityPolicy: false,
   })
 );
 
-// ─── CORS ────────────────────────────────────────────────────────────────────
+// ─── CORS Configuration ──────────────────────────────────────────────────────
 const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
@@ -38,17 +39,26 @@ const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      // السماح بالطلبات التي لا تحتوي على origin (مثل أداة curl أو تطبيقات الهاتف) أو النطاقات المصرح لها
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      // إرجاع false يمنع النطاق دون رمي Exception يكسر هيدرز الـ Preflight
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With", 
+      "Accept", 
+      "X-XSRF-TOKEN"
+    ],
   })
 );
 
-// ─── Logging (disable verbose logs in production) ────────────────────────────
+// ─── Logging ─────────────────────────────────────────────────────────────────
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 } else {
@@ -60,7 +70,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use(cookieParser());
 
-// ─── Global Rate Limiter (generous, per-IP) ─────────────────────────────────
+// ─── Global Rate Limiter ─────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -70,7 +80,6 @@ const globalLimiter = rateLimit({
   skip: (req) => req.method === "OPTIONS",
 });
 app.use(globalLimiter);
-
 
 // ─── Health Check ────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
@@ -98,13 +107,11 @@ if (ENABLE_SOCKET) {
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     },
-    // Connection state recovery
     connectionStateRecovery: { maxDisconnectionDuration: 2 * 60 * 1000 },
   });
 
   app.set("io", io);
 
-  // JWT auth middleware for socket
   const parseCookie = (cookieHeader = "") => {
     return Object.fromEntries(
       cookieHeader
@@ -138,12 +145,9 @@ if (ENABLE_SOCKET) {
     socket.join(String(socket.user._id));
     socket.join(socket.user.role);
 
-    socket.on("disconnect", () => {
-      // Cleanup handled automatically by Socket.IO
-    });
+    socket.on("disconnect", () => {});
   });
 } else {
-  // Socket disabled — set io to null so notification util gracefully skips emit
   app.set("io", null);
 }
 
@@ -159,13 +163,17 @@ cron.schedule(
   { scheduled: true, timezone: "Africa/Cairo" }
 );
 
+// ─── 404 Handler (Must be before Global Error Handler) ────────────────────────
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "المسار غير موجود" });
+});
+
 // ─── Global Error Handler ────────────────────────────────────────────────────
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
   const isDev = process.env.NODE_ENV !== "production";
 
-  // Only log 5xx errors in production
   if (statusCode >= 500 || isDev) {
     console.error("ERROR:", err.message, { path: req.path, method: req.method });
   }
@@ -176,11 +184,6 @@ app.use((err, req, res, next) => {
     status: statusCode,
     ...(isDev && { stack: err.stack }),
   });
-});
-
-// ─── 404 Handler ─────────────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "المسار غير موجود" });
 });
 
 // ─── Server Startup ──────────────────────────────────────────────────────────
@@ -202,7 +205,6 @@ const gracefulShutdown = (signal) => {
     process.exit(0);
   });
 
-  // Force close after 10s
   setTimeout(() => {
     console.error("Forced shutdown after timeout.");
     process.exit(1);
