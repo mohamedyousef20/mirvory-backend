@@ -328,7 +328,8 @@ export const refreshToken = async (req, res, next) => {
 
     // 🔄 ROTATION: Remove old token and add new one
     user.refreshTokens = user.refreshTokens.filter(rt => rt.token !== refreshToken);
-    const newRefreshTokenExpiry = new Date(Date.now() + parseDurationToMs(refreshExpireConfig));    user.refreshTokens.push({
+    const newRefreshTokenExpiry = new Date(Date.now() + parseDurationToMs(process.env.JWT_REFRESH_EXPIRE));
+    user.refreshTokens.push({
       token: newRefreshToken,
       createdAt: new Date(),
       expiresAt: newRefreshTokenExpiry
