@@ -248,7 +248,7 @@ export const login = async (req, res, next) => {
     res.cookie("accessToken", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_EXPIRE),
       path: '/'
     });
@@ -256,7 +256,7 @@ export const login = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
       path: '/'
     });
@@ -280,9 +280,9 @@ export const logout = async (req, res, next) => {
     }
 
     const isProduction = process.env.NODE_ENV === "production";
-    res.cookie('token', '', { httpOnly: true, secure: isProduction, sameSite: 'strict', expires: new Date(0), path: '/' });
-    res.cookie('accessToken', '', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'strict' : 'lax', expires: new Date(0), path: '/' });
-    res.cookie('refreshToken', '', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'strict' : 'lax', expires: new Date(0), path: '/' });
+    res.cookie('token', '', { httpOnly: true, secure: isProduction, sameSite: 'none', expires: new Date(0), path: '/' });
+    res.cookie('accessToken', '', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', expires: new Date(0), path: '/' });
+    res.cookie('refreshToken', '', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', expires: new Date(0), path: '/' });
     res.cookie('role', '', { expires: new Date(0), path: '/' });
 
     res.status(200).json({ success: true, message: "تم تسجيل الخروج بنجاح" });
@@ -346,7 +346,7 @@ export const refreshToken = async (req, res, next) => {
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_EXPIRE),
       path: '/'
     });
@@ -354,7 +354,7 @@ export const refreshToken = async (req, res, next) => {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
       path: '/'
     });
@@ -894,7 +894,7 @@ export const googleAuth = async (req, res, next) => {
     res.cookie("accessToken", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_EXPIRE),
       path: '/'
     });
@@ -902,7 +902,7 @@ export const googleAuth = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
       path: '/'
     });
@@ -947,7 +947,7 @@ export const setSocialCookies = async (req, res, next) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_EXPIRE) || 15 * 60 * 1000,
       path: '/'
     });
@@ -955,7 +955,7 @@ export const setSocialCookies = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
