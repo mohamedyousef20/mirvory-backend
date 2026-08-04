@@ -261,7 +261,11 @@ sameSite: isProduction ? "none" : "lax",
       path: '/'
     });
 
-    res.status(200).json({ success: true, data: { user: { id: user._id, role: user.role } } });
+    res.status(200).json({
+      success: true,
+      tokens: { accessToken: token, refreshToken },
+      data: { user: { id: user._id, role: user.role } }
+    });
   } catch (error) {
     console.error('Login Error:', error);
     next(new createError(error.message, 500));
