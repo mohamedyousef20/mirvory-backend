@@ -260,6 +260,9 @@ export const login = async (req, res, next) => {
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
+    console.lgo("aa",accessToken)
+    console.lgo("aaf",refreshToken)
+    console.lgo("aa",role)
 
     res.status(200).json({
       success: true,
