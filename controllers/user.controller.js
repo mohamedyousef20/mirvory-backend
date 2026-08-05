@@ -248,16 +248,16 @@ export const login = async (req, res, next) => {
     res.cookie("accessToken", token, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_EXPIRE) || 15 * 60 * 1000,
       path: '/'
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
 
@@ -351,16 +351,16 @@ export const refreshToken = async (req, res, next) => {
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_EXPIRE) || 15 * 60 * 1000,
       path: '/'
     });
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
 
@@ -522,26 +522,31 @@ export const verifyResetCode = async (req, res, next) => {
 }
 
 export const resetPassword = async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) {
-    return next(new createError('Please Enter Email ', 404))
-  }
-  if (!user.passwordResetVerified) {
-    return next(new createError('Reset code not verified', 400));
-  }
-  // Update the user's password and clear reset-related fields
-  user.password = req.body.newPassword;
-  user.passwordResetCode = undefined;
-  user.passwordResetCodeExpiresAt = undefined;
-  user.passwordResetVerified = undefined;
-  await user.save();
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return next(new createError('البريد الإلكتروني غير موجود', 404));
+    }
+    if (!user.passwordResetVerified) {
+      return next(new createError('Reset code not verified', 400));
+    }
+    // Update the user's password and clear reset-related fields
+    user.password = req.body.newPassword;
+    user.passwordResetCode = undefined;
+    user.passwordResetCodeExpiresAt = undefined;
+    user.passwordResetVerified = undefined;
+    await user.save();
 
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
-  );
-  res.status(200).json({ data: user, userToken: token });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    );
+    res.status(200).json({ success: true, data: user, userToken: token });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    next(new createError('حدث خطأ أثناء إعادة تعيين كلمة المرور', 500));
+  }
 };
 
 export const changeUserPassword = async (req, res, next) => {
@@ -878,7 +883,8 @@ export const googleAuth = async (req, res, next) => {
     );
 
     // 🔄 TOKEN ROTATION: Store refresh token in user document
-    const refreshTokenExpiry = new Date(Date.now() + process.env.JWT_REFRESH_EXPIRE);
+    // FIX: use parseDurationToMs to avoid string concatenation → Invalid Date
+    const refreshTokenExpiry = new Date(Date.now() + parseDurationToMs(process.env.JWT_REFRESH_EXPIRE || '7d'));
     user.refreshTokens = user.refreshTokens || [];
     user.refreshTokens.push({
       token: refreshToken,
@@ -899,16 +905,16 @@ export const googleAuth = async (req, res, next) => {
     res.cookie("accessToken", token, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_EXPIRE) || 15 * 60 * 1000,
       path: '/'
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
-      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE),
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
 
@@ -952,7 +958,7 @@ export const setSocialCookies = async (req, res, next) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_EXPIRE) || 15 * 60 * 1000,
       path: '/'
     });
@@ -960,7 +966,7 @@ sameSite: isProduction ? "none" : "lax",
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: isProduction,
-sameSite: isProduction ? "none" : "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: Number(process.env.COOKIE_REFRESH_EXPIRE) || 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
