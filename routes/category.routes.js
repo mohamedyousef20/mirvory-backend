@@ -7,17 +7,11 @@ import {
   deleteCategory
 
 } from '../controllers/category.controller.js';
-import productRoutes from './product.routes.js';
 
 import { protect, isAdmin } from '../middlewares/auth.js';
 // import { createCategorySchema, updateCategorySchema } from '../validations/category.validation.js';
 
 const router = express.Router();
-
-// @route   GET /api/categories/:id
-// @desc    Get product in category
-// @access  Public
-router.use('/:categoryId/products', productRoutes);
 
 
 // @route   GET /api/categories
