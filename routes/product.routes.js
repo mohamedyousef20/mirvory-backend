@@ -48,8 +48,8 @@ router.delete('/', protect, isSeller, deleteProduct);
 router.patch('/', protect, isSeller, updateProduct);
 
 // مسارات عامة
-// Get all products in category
-router.get('/categories/:categoryId/products', paginate(12), sort(), buildFilter(commonFilters.product), getProductsByCategory);
+// Get all products in category — flat route (no nested /categories/:id/products)
+router.get('/by-category/:categoryId', paginate(12), sort(), buildFilter(commonFilters.product), getProductsByCategory);
 // Advanced search endpoint
 router.get('/search', searchProducts);
 // Search suggestions/autocomplete
