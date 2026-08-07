@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createProduct,
   getProducts,
+  getProductsByCategory,
   getProductById,
   approveProduct,
   rejectProduct,
@@ -47,6 +48,8 @@ router.delete('/', protect, isSeller, deleteProduct);
 router.patch('/', protect, isSeller, updateProduct);
 
 // مسارات عامة
+/ Get all products in category
+router.get('/category/:categoryId', paginate(12), sort(), buildFilter(commonFilters.product), getProductsByCategory);
 // Advanced search endpoint
 router.get('/search', searchProducts);
 // Search suggestions/autocomplete
