@@ -1,0 +1,42 @@
+{
+  "name": "mirvory-backend",
+  "version": "1.0.0",
+  "description": "Mirvory Multi-Vendor Ecommerce Backend",
+  "main": "server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node server.js",
+    "dev": "nodemon server.js",
+    "lint": "echo 'No ESLint config - skipping lint'",
+    "init-super-admin": "node scripts/initSuperAdmin.js",
+    "create-search-index": "node scripts/create-search-index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "resend": "^4.0.0",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^8.5.2",
+    "express-validator": "^7.3.0",
+    "helmet": "^8.2.0",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^6.9.1",
+    "socket.io": "^4.6.1",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
