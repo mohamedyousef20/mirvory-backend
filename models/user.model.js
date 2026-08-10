@@ -21,18 +21,6 @@ const vendorSchema = new mongoose.Schema(
       default: "individual",
     },
 
-    // Identity & Legal
-    nationalId: {
-      type: String,
-      required: [true, "National ID is required"],
-      validate: {
-        validator: function (v) {
-          return /^[0-9]{14}$/.test(v);
-        },
-        message: "National ID must be exactly 14 digits",
-      },
-    },
-
     taxID: {
       type: String,
       default: "",
