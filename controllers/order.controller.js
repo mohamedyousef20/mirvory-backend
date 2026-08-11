@@ -98,7 +98,7 @@ export const createOrder = async (req, res, next) => {
     );
     const discount = cart.appliedCoupon?.discountAmount || 0;
 
-    const shippingFee = (subtotal > 4000 || deliveryMethod === "pickup") ? 0 : 70;
+    const shippingFee = (subtotal >= 1500 || deliveryMethod === "pickup") ? 0 : 70;
     const total = Math.max(0, subtotal - discount + shippingFee);
     const secretCode = await generateUniqueSecretCode(req.user._id);
 

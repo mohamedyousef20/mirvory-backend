@@ -84,7 +84,7 @@ export const validateGuestCart = async (req, res, next) => {
       };
     });
 
-    const shippingFee = subtotal > 500 ? 0 : 30;
+    const shippingFee = subtotal >= 1500 ? 0 : 70;
     const total = subtotal + shippingFee;
 
     return res.status(200).json({
