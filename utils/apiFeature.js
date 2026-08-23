@@ -88,7 +88,7 @@ class apiFeature {
 
         // ## => Previous Page
 
-        if (endIndex > 0) {
+        if (endIndex > 1) {
             pagination.prev = page - 1;
         }
         this.mongooseQuery = this.mongooseQuery.skip(skip).limit(limit);
