@@ -13,29 +13,29 @@ export const createReturnRequest = async (req, res, next) => {
     const { orderId, reason, itemId, images } = req.body;
 
     if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) {
-      throw createError("بيانات الطلب أو المنتج غير صالحة", 400);
+      throw new createError("بيانات الطلب أو المنتج غير صالحة", 400);
     }
 
     const order = await Order.findById(orderId);
-    if (!order) throw createError('الطلب غير موجود', 404);
+    if (!order) throw new createError('الطلب غير موجود', 404);
 
     if (order.buyer.toString() !== req.user._id.toString()) {
-      throw createError('غير مصرح لك، هذا الطلب لا ينتمي لحسابك', 403);
+      throw new createError('غير مصرح لك، هذا الطلب لا ينتمي لحسابك', 403);
     }
 
     if (order.deliveryStatus !== 'delivered') {
-      throw createError('لا يمكن تقديم طلب إرجاع لطلب لم يتم توصيله بعد', 400);
+      throw new createError('لا يمكن تقديم طلب إرجاع لطلب لم يتم توصيله بعد', 400);
     }
 
     if (order.deliveredAt) {
       const daysSinceDelivery = Math.floor((new Date() - new Date(order.deliveredAt)) / (1000 * 60 * 60 * 24));
       if (daysSinceDelivery > 14) {
-        throw createError(`انتهت فترة الإرجاع المسموحة (14 يومًا). مضت ${daysSinceDelivery} يومًا منذ التسليم`, 400);
+        throw new createError(`انتهت فترة الإرجاع المسموحة (14 يومًا). مضت ${daysSinceDelivery} يومًا منذ التسليم`, 400);
       }
     }
 
     const orderItem = order.items.find(item => item._id.toString() === itemId);
-    if (!orderItem) throw createError('العنصر المحدد غير موجود في بيانات هذا الطلب', 404);
+    if (!orderItem) throw new createError('العنصر المحدد غير موجود في بيانات هذا الطلب', 404);
 
     const existingReturnRequest = await ReturnRequest.findOne({
       user: req.user._id,
@@ -45,7 +45,7 @@ export const createReturnRequest = async (req, res, next) => {
     }).lean();
 
     if (existingReturnRequest) {
-      throw createError(`لديك بالفعل طلب إرجاع نشط لهذا العنصر بحالة: ${existingReturnRequest.status}`, 400);
+      throw new createError(`لديك بالفعل طلب إرجاع نشط لهذا العنصر بحالة: ${existingReturnRequest.status}`, 400);
     }
 
     const recentlyRejected = await ReturnRequest.findOne({
@@ -57,7 +57,7 @@ export const createReturnRequest = async (req, res, next) => {
     }).lean();
 
     if (recentlyRejected) {
-      throw createError('تم رفض طلب سابق لهذا العنصر مؤخراً. يرجى المحاولة مرة أخرى بعد 48 ساعة من الرفض', 400);
+      throw new createError('تم رفض طلب سابق لهذا العنصر مؤخراً. يرجى المحاولة مرة أخرى بعد 48 ساعة من الرفض', 400);
     }
 
     const returnRequest = new ReturnRequest({
@@ -123,7 +123,7 @@ export const getReturnRequests = async (req, res, next) => {
 export const getReturnRequestsForAdmin = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-      throw createError("غير مصرح بالدخول", 403);
+      throw new createError("غير مصرح بالدخول", 403);
     }
 
     const page = parseInt(req.query.page) || 1;
@@ -153,7 +153,7 @@ export const getReturnRequestsForAdmin = async (req, res, next) => {
 export const canCreateReturnRequest = async (req, res, next) => {
   try {
     const { orderId, itemId } = req.params;
-    if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) throw createError("المعرفات غير صالحة", 400);
+    if (!isValidObjectId(orderId) || !isValidObjectId(itemId)) throw new createError("المعرفات غير صالحة", 400);
 
     const existingReturnRequest = await ReturnRequest.findOne({
       user: req.user._id,
@@ -180,17 +180,17 @@ export const canCreateReturnRequest = async (req, res, next) => {
 export const updateReturnStatus = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-      throw createError("صلاحيات غير كافية", 403);
+      throw new createError("صلاحيات غير كافية", 403);
     }
 
     const { status, returnId } = req.body;
-    if (!isValidObjectId(returnId)) throw createError("معرف الطلب غير صالح", 400);
+    if (!isValidObjectId(returnId)) throw new createError("معرف الطلب غير صالح", 400);
 
     const validStatuses = ['pending', 'approved', 'rejected', 'processed'];
-    if (!validStatuses.includes(status)) throw createError('حالة الإرجاع غير صحيحة', 400);
+    if (!validStatuses.includes(status)) throw new createError('حالة الإرجاع غير صحيحة', 400);
 
     const returnRequest = await ReturnRequest.findById(returnId);
-    if (!returnRequest) throw createError('طلب الإرجاع غير موجود', 404);
+    if (!returnRequest) throw new createError('طلب الإرجاع غير موجود', 404);
 
     returnRequest.status = status;
     await returnRequest.save();
@@ -235,14 +235,14 @@ export const updateReturnStatus = async (req, res, next) => {
 export const deleteReturnRequest = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-      throw createError("صلاحيات غير كافية", 403);
+      throw new createError("صلاحيات غير كافية", 403);
     }
 
     const { id } = req.body;
-    if (!isValidObjectId(id)) throw createError("المعرف غير صالح", 400);
+    if (!isValidObjectId(id)) throw new createError("المعرف غير صالح", 400);
 
     const deleted = await ReturnRequest.findByIdAndDelete(id);
-    if (!deleted) throw createError("الطلب غير موجود بالفعل", 404);
+    if (!deleted) throw new createError("الطلب غير موجود بالفعل", 404);
 
     res.status(200).json({ success: true, message: 'تم حذف طلب الارجاع بنجاح' });
   } catch (error) {
@@ -253,14 +253,14 @@ export const deleteReturnRequest = async (req, res, next) => {
 export const getReturnRequestById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!isValidObjectId(id)) throw createError("المعرف غير صالح", 400);
+    if (!isValidObjectId(id)) throw new createError("المعرف غير صالح", 400);
 
     const returnRequest = await ReturnRequest.findById(id)
       .populate('order', 'orderNumber createdAt')
       .populate('product')
       .populate('user', 'firstName lastName email')
       .populate('seller', 'firstName lastName email');
-    if (!returnRequest) throw createError('طلب الإرجاع غير موجود', 404);
+    if (!returnRequest) throw new createError('طلب الإرجاع غير موجود', 404);
     const userId = req.user?._id.toString();
     const role = req.user.role;
 
@@ -269,7 +269,7 @@ export const getReturnRequestById = async (req, res, next) => {
     const isAdmin = role === 'admin' || role === 'super_admin';
 
     if (!isOwner && !isSeller && !isAdmin) {
-      throw createError('غير مصرح لك باستعراض هذا الطلب', 403);
+      throw new createError('غير مصرح لك باستعراض هذا الطلب', 403);
     }
 
     res.status(200).json(returnRequest);
