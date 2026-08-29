@@ -604,3 +604,27 @@ export const processOrderPayout = async (req, res, next) => {
     res.status(200).json({ message: 'تم تحصيل الطلب وإضافة الرصيد المعلق بنجاح' });
   } catch (error) { next(error); }
 };
+
+export const deleteOrder = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+      throw new createError("مرفوض. للإدارة فقط.", 403);
+    }
+
+    const { id } = req.params;
+    if (!isValidObjectId(id)) throw new createError("معرف الطلب غير صالح", 400);
+
+    const order = await Order.findById(id);
+    if (!order) throw new createError("الطلب غير موجود", 404);
+
+    if (order.deliveryStatus !== 'delivered') {
+      throw new createError("لا يمكن حذف الطلب إلا بعد اكتماله (تم التوصيل)", 400);
+    }
+
+    await Order.findByIdAndDelete(id);
+
+    res.status(200).json({ success: true, message: "تم حذف الطلب بنجاح" });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -4,7 +4,8 @@ import { getAdminOrders, getSellerOrders,
       updatePayment, cashingOrder,
       createOrder, confirmPreparation, confirmItemPreparation,
       createOrderFilterObj, updateDeliveryStatus,
-      getUserOrderById, getUserOrders, printInvoice, processOrderPayout } from '../controllers/order.controller.js';
+      getUserOrderById, getUserOrders, printInvoice, processOrderPayout,
+      deleteOrder } from '../controllers/order.controller.js';
 import { isAdmin, isSeller, protect } from '../middlewares/auth.js';
 import { paginate } from '../middlewares/pagination.js';
 import { sort } from '../middlewares/sort.js';
@@ -29,6 +30,9 @@ router.patch('/update-payment',isAdmin, updatePayment);
 // router.get("/check-out-session/:cartId", verifyToken, checkOutSession);
 
 router.post("/", createOrder);
+
+// Delete a completed order (admin only)
+router.delete("/:id", isAdmin, deleteOrder);
 
 // router.patch("/pay/method", verifyToken, updatedOrderPaymentMethod);
 export default router;
